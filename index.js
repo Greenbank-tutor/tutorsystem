@@ -159,12 +159,35 @@ app.get('/api/subjects', async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 9;
     const skip = (page - 1) * limit;
+    
+    // If no pagination parameters are provided, return all subjects
+    if (!req.query.page && !req.query.limit) {
+      const subjects = await Subject.find();
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.json({ subjects, total: subjects.length });
+      return;
+    }
+    
     const [subjects, total] = await Promise.all([
       Subject.find().skip(skip).limit(limit),
       Subject.countDocuments()
     ]);
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.json({ subjects, total });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get All Subjects (for managers - no pagination)
+app.get('/api/admin/subjects', authenticateToken, async (req, res) => {
+  try {
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ message: 'Admin access required' });
+    }
+    const subjects = await Subject.find();
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.json(subjects);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -607,7 +630,8 @@ app.put('/api/admin/tutors/:id/approve', authenticateToken, async (req, res) => 
       html: `
         <h2>Congratulations!</h2>
         <p>Your tutor registration has been approved.</p>
-        <p>You can now receive booking requests from students.</p>
+        <p><strong>Your approved subjects:</strong> ${Array.isArray(tutor.subjects) ? tutor.subjects.join(', ') : tutor.subjects}</p>
+        <p>You can now receive booking requests from students for these subjects.</p>
       `
     };
     

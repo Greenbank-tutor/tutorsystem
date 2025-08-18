@@ -1003,8 +1003,12 @@ const API = {
         return await res.json();
     },
     async getAllSubjects(token) {
-        // Use /api/subjects for all
-        return this.getSubjects();
+        // Use admin endpoint for all subjects without pagination
+        const res = await fetch('/api/admin/subjects', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('Failed to fetch all subjects');
+        return await res.json();
     },
     async addSubject(token, name) {
         const res = await fetch('/api/admin/subjects', {
@@ -1357,26 +1361,6 @@ async function approveTutor(tutorId) {
     try {
         console.log('Approving tutor:', tutorId);
         await API.approveTutor(state.user.token, tutorId);
-        
-        // Get the tutor's requested subjects and assign them
-        const tutor = state.tutorRequests.find(t => t._id === tutorId);
-        if (tutor && tutor.subjects && Array.isArray(tutor.subjects)) {
-            console.log('Auto-assigning tutor to requested subjects:', tutor.subjects);
-            
-            // Find subject IDs for the requested subjects
-            const subjectIds = [];
-            for (const subjectName of tutor.subjects) {
-                const subject = state.subjects.find(s => s.name === subjectName);
-                if (subject) {
-                    subjectIds.push(subject._id);
-                }
-            }
-            
-            if (subjectIds.length > 0) {
-                console.log('Assigning tutor to subject IDs:', subjectIds);
-                await API.assignMultipleSubjects(state.user.token, tutorId, subjectIds);
-            }
-        }
         
         console.log('About to fetch manager data after tutor approval...');
         await fetchManagerData();
