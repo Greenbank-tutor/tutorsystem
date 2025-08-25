@@ -231,7 +231,15 @@ app.post('/api/tutor/register', async (req, res) => {
     }
     const existingTutor = await Tutor.findOne({ email });
     if (existingTutor) return res.status(400).json({ message: 'Tutor already registered' });
-    const tutor = new Tutor({ firstName, surname, email, subjects, description, isApproved: false });
+    const tutor = new Tutor({ 
+      firstName, 
+      surname, 
+      email, 
+      subjects, 
+      originalSubjects: subjects, // Save original subjects
+      description, 
+      isApproved: false 
+    });
     await tutor.save();
     // Send email to manager
     const mailOptions = {

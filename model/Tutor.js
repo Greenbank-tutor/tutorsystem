@@ -5,6 +5,7 @@ const TutorSchema = new mongoose.Schema({
   surname: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   subjects: [{ type: String, required: true }],
+  originalSubjects: [{ type: String }], // Store original application subjects
   description: { type: String, required: true },
   isApproved: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now }
