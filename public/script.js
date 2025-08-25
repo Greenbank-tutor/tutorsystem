@@ -725,7 +725,7 @@ function managerPanelView() {
                         <button class="btn btn-small btn-danger" onclick="removeTutor('${t._id}')">Remove Tutor</button>
                     </div>
                     <div class="subject-assignment">
-                        <label><strong>Assign Subjects:</strong></label>
+                        <label><strong>Assign Subjects (${state.subjects.length} total):</strong></label>
                         <div class="subject-checkboxes">
                             ${state.subjects.map(s => `
                                 <label class="checkbox-label">
@@ -1254,6 +1254,7 @@ async function fetchManagerData() {
     try {
         state.subjects = await API.getAllSubjects(state.user.token);
         console.log('Subjects fetched:', state.subjects.length);
+        console.log('All subjects:', state.subjects.map(s => s.name));
     } catch (error) {
         console.error('Error fetching subjects:', error);
         throw new Error('Failed to fetch subjects: ' + error.message);
